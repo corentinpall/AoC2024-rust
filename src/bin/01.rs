@@ -1,3 +1,4 @@
+use std::collections::hash_map::Entry::Vacant;
 use adv_code_2024::*;
 use anyhow::*;
 use code_timing_macros::time_snippet;
@@ -73,9 +74,9 @@ fn main() -> Result<()> {
         let mut ret = 0;
         let mut similarity_hashmap: HashMap<u32, u32> = HashMap::new();
         for value in left {
-            if !similarity_hashmap.contains_key(&value) {
+            if let Vacant(e) = similarity_hashmap.entry(value) {
                 let numbers_in_right = right.iter().filter(|&x| *x == value).count() as u32;
-                similarity_hashmap.insert(value, numbers_in_right);
+                e.insert(numbers_in_right);
                 ret += value * similarity_hashmap.get(&value).unwrap();
             } else {
                 ret += value * similarity_hashmap.get(&value).unwrap();
