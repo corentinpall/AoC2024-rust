@@ -78,10 +78,12 @@ fn main() -> Result<()> {
                     ret += 1;
                 }
                 VecState::Invalid(prev, curr) => {
+                    // index 0 removal has to be handled in a better way for sure
+                    // also there might be optimization to be done depending on error (asc, desc, eq)
+                    // here we remove prev, curr, then 0 but depending on why it's invalid there might be better orders
                     if validate_vec_after_removal(&int_parts, prev)
                         || validate_vec_after_removal(&int_parts, curr)
                         || validate_vec_after_removal(&int_parts, 0)
-                    // index 0 removal has to be handled in a better way for sure
                     {
                         ret += 1
                     }
