@@ -26,35 +26,30 @@ fn main() -> Result<()> {
     fn part1<R: BufRead>(reader: R) -> Result<usize> {
         let mut ret = 0;
         for line in reader.lines() {
-            let mut is_ascending = false;
-            let line = line?;
-            let parts = line.split_whitespace();
-            let int_parts = parts
-                .map(|x| x.parse::<i32>().unwrap())
-                .collect::<Vec<i32>>();
-            for i in 0..int_parts.len() {
-                let current = int_parts[i];
-                if i == 0 {
-                    let next = int_parts[i + 1];
-                    if current.abs_diff(next) > 4 || current == next {
-                        break;
-                    }
-                    is_ascending = next > current;
-                } else {
-                    let prev = int_parts[i - 1];
-                    if prev.abs_diff(current) > 4 {
-                        break;
-                    }
-                    if (is_ascending && prev > current)
-                        || (!is_ascending && prev < current)
-                        || prev == current
-                    {
-                        break;
-                    }
-                    if i == int_parts.len() - 1 {
-                        ret += 1
-                    }
+            let line = line?.replace('\u{FEFF}', "");
+            let int_parts = line
+                .split_whitespace()
+                .map(|x| x.parse::<u32>().unwrap())
+                .collect::<Vec<u32>>();
+
+            let mut is_ascending = int_parts[0] < int_parts[1];
+            let mut valid = true;
+
+            for window in int_parts.windows(2)
+            {
+                let (prev, current) = (window[0], window[1]);
+                if prev.abs_diff(current) > 3
+                    || prev == current ||
+                    (is_ascending && prev > current)
+                    || (!is_ascending && prev < current)
+                {
+                    valid = false;
+                    break;
                 }
+            }
+
+            if valid {
+                ret += 1;
             }
         }
         Ok(ret)
