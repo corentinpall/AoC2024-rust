@@ -35,12 +35,11 @@ fn main() -> Result<()> {
             let mut is_ascending = int_parts[0] < int_parts[1];
             let mut valid = true;
 
-            for window in int_parts.windows(2)
-            {
+            for window in int_parts.windows(2) {
                 let (prev, current) = (window[0], window[1]);
                 if prev.abs_diff(current) > 3
-                    || prev == current ||
-                    (is_ascending && prev > current)
+                    || prev == current
+                    || (is_ascending && prev > current)
                     || (!is_ascending && prev < current)
                 {
                     valid = false;
