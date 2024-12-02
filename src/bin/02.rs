@@ -8,15 +8,6 @@ use std::io::{BufRead, BufReader};
 const DAY: &str = "02";
 const INPUT_FILE: &str = concatcp!("input/", DAY, ".txt");
 
-// const TEST: &str = "\
-// 7 6 4 2 1
-// 1 2 7 8 9
-// 9 7 6 2 1
-// 1 3 2 4 5
-// 8 6 4 4 1
-// 1 3 6 7 9
-// ";
-
 const TEST: &str = "\
 7 6 4 2 1
 1 2 7 8 9
@@ -43,30 +34,29 @@ fn main() -> Result<()> {
     start_day(DAY);
 
     //region Part 1
-    // println!("=== Part 1 ===");
-    //
-    // fn part1<R: BufRead>(reader: R) -> Result<usize> {
-    //     let mut ret = 0;
-    //     for line in reader.lines() {
-    //         let line = line?.replace('\u{FEFF}', "");
-    //         let int_parts = line
-    //             .split_whitespace()
-    //             .map(|x| x.parse::<u32>().unwrap())
-    //             .collect::<Vec<u32>>();
-    //
-    //         let is_ascending = int_parts[0] < int_parts[1];
-    //         if matches!(is_vec_valid(&int_parts, is_ascending), VecState::Valid) {
-    //             ret += 1;
-    //         }
-    //     }
-    //     Ok(ret)
-    // }
-    //
-    // assert_eq!(2, part1(BufReader::new(TEST.as_bytes()))?);
-    //
-    // let input_file = BufReader::new(File::open(INPUT_FILE)?);
-    // let result = time_snippet!(part1(input_file)?);
-    // println!("Result = {}", result);
+    println!("=== Part 1 ===");
+
+    fn part1<R: BufRead>(reader: R) -> Result<usize> {
+        let mut ret = 0;
+        for line in reader.lines() {
+            let line = line?.replace('\u{FEFF}', "");
+            let int_parts = line
+                .split_whitespace()
+                .map(|x| x.parse::<u32>().unwrap())
+                .collect::<Vec<u32>>();
+
+            if matches!(is_vec_valid(&int_parts), VecState::Valid) {
+                ret += 1;
+            }
+        }
+        Ok(ret)
+    }
+
+    assert_eq!(2, part1(BufReader::new(TEST.as_bytes()))?);
+
+    let input_file = BufReader::new(File::open(INPUT_FILE)?);
+    let result = time_snippet!(part1(input_file)?);
+    println!("Result = {}", result);
     //endregion
 
     //region Part 2
@@ -80,26 +70,20 @@ fn main() -> Result<()> {
                 .split_whitespace()
                 .map(|x| x.parse::<u32>().unwrap())
                 .collect::<Vec<u32>>();
-            let is_ascending = int_parts[0] < int_parts[1];
 
-            let vec_status = is_vec_valid(&int_parts, is_ascending);
+            let vec_status = is_vec_valid(&int_parts);
 
             match vec_status {
                 VecState::Valid => {
                     ret += 1;
                 }
                 VecState::Invalid(prev, curr) => {
-                    if validate_vec_after_removal(&int_parts, prev, is_ascending)
-                        || validate_vec_after_removal(&int_parts, curr, is_ascending)
+                    if validate_vec_after_removal(&int_parts, prev)
+                        || validate_vec_after_removal(&int_parts, curr)
+                        || validate_vec_after_removal(&int_parts, 0)
+                    // index 0 removal has to be handled in a better way for sure
                     {
                         ret += 1
-                    } else {
-                        //it's possible that the first one is the problem, and is_ascending is actually the other way around
-                        let mut copy = int_parts.clone();
-                        copy.remove(0);
-                        if let VecState::Valid = is_vec_valid(&copy, copy[0] < copy[1]) {
-                            ret += 1
-                        }
                     }
                 }
             }
@@ -107,7 +91,7 @@ fn main() -> Result<()> {
         Ok(ret)
     }
 
-    //assert_eq!(4, part2(BufReader::new(TEST.as_bytes()))?);
+    assert_eq!(4, part2(BufReader::new(TEST.as_bytes()))?);
     assert_eq!(10, part2(BufReader::new(TEST_EDGE_CASES.as_bytes()))?);
     let input_file = BufReader::new(File::open(INPUT_FILE)?);
     let result = time_snippet!(part2(input_file)?);
@@ -119,8 +103,9 @@ fn main() -> Result<()> {
         Invalid(usize, usize),
     }
 
-    fn is_vec_valid(int_parts: &Vec<u32>, is_ascending: bool) -> VecState {
+    fn is_vec_valid(int_parts: &Vec<u32>) -> VecState {
         for i in 1..int_parts.len() {
+            let is_ascending = int_parts[0] < int_parts[1];
             let (prev, current) = (int_parts[i - 1], int_parts[i]);
 
             if prev.abs_diff(current) > 3
@@ -134,14 +119,10 @@ fn main() -> Result<()> {
         VecState::Valid
     }
 
-    fn validate_vec_after_removal(
-        int_parts: &Vec<u32>,
-        index_to_remove: usize,
-        is_ascending: bool,
-    ) -> bool {
+    fn validate_vec_after_removal(int_parts: &Vec<u32>, index_to_remove: usize) -> bool {
         let mut int_parts_copy = int_parts.clone();
         int_parts_copy.remove(index_to_remove);
-        matches!(is_vec_valid(&int_parts_copy, is_ascending), VecState::Valid)
+        matches!(is_vec_valid(&int_parts_copy), VecState::Valid)
     }
 
     Ok(())
