@@ -4,7 +4,6 @@ use code_timing_macros::time_snippet;
 use const_format::concatcp;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use std::ops::Index;
 
 const DAY: &str = "04";
 const INPUT_FILE: &str = concatcp!("input/", DAY, ".txt");
@@ -57,90 +56,67 @@ fn main() -> Result<()> {
                     let can_check_up = i >= 3;
                     let can_check_down = i < text_as_chars.len() - 3;
 
-                    // check left
+                    // compute horizontal
+                    let mut potential_xmases = "X".to_string();
                     if can_check_left {
-                        let potential_xmas = text_as_chars[i][j - 3..=j].iter().collect::<String>();
-                        if is_xmas(potential_xmas) {
-                            ret += 1;
-                        }
+                        potential_xmases
+                            .insert_str(0, &text_as_chars[i][j - 3..j].iter().collect::<String>());
                     }
-
-                    // check right
                     if can_check_right {
-                        let potential_xmas = text_as_chars[i][j..=j + 3].iter().collect::<String>();
-                        if is_xmas(potential_xmas) {
-                            ret += 1;
-                        }
+                        potential_xmases
+                            .push_str(&text_as_chars[i][j + 1..=j + 3].iter().collect::<String>());
                     }
+                    ret += number_of_xmases(potential_xmases);
 
-                    // check up
+                    // compute vertical
+                    potential_xmases = "X".to_string();
                     if can_check_up {
-                        let potential_xmas = text_as_chars[i - 3..=i]
+                        let potential_xmas: String = text_as_chars[i - 3..i]
                             .iter()
                             .filter_map(|line| line.get(j))
                             .collect();
-                        if is_xmas(potential_xmas) {
-                            ret += 1;
-                        }
+                        potential_xmases.insert_str(0, &potential_xmas);
                     }
-
-                    // check down
                     if can_check_down {
-                        let potential_xmas = text_as_chars[i..=i + 3]
+                        let potential_xmas: String = text_as_chars[i + 1..=i + 3]
                             .iter()
                             .filter_map(|line| line.get(j))
                             .collect();
-                        if is_xmas(potential_xmas) {
-                            ret += 1;
-                        }
+                        potential_xmases.push_str(&potential_xmas);
                     }
+                    ret += number_of_xmases(potential_xmases);
 
-                    // check up left
+                    // compute diagonal left to right
+                    potential_xmases = "X".to_string();
                     if can_check_up && can_check_left {
-                        let mut potential_xmas = "".to_string();
-                        for k in 0..=3 {
-                            potential_xmas.push(text_as_chars[i - k][j - k]);
-                        }
-                        if is_xmas(potential_xmas) {
-                            ret += 1;
+                        for k in 1..=3 {
+                            potential_xmases.insert(0, text_as_chars[i - k][j - k]);
                         }
                     }
-
-                    // check up right
-                    if can_check_up && can_check_right {
-                        let mut potential_xmas = "".to_string();
-                        for k in 0..=3 {
-                            potential_xmas.push(text_as_chars[i - k][j + k]);
-                        }
-                        if is_xmas(potential_xmas) {
-                            ret += 1;
-                        }
-                    }
-
-                    // check down left
-                    if can_check_down && can_check_left {
-                        let mut potential_xmas = "".to_string();
-                        for k in 0..=3 {
-                            potential_xmas.push(text_as_chars[i + k][j - k]);
-                        }
-                        if is_xmas(potential_xmas) {
-                            ret += 1;
-                        }
-                    }
-
-                    // check down right
                     if can_check_down && can_check_right {
-                        let mut potential_xmas = "".to_string();
-                        for k in 0..=3 {
-                            potential_xmas.push(text_as_chars[i + k][j + k]);
-                        }
-                        if is_xmas(potential_xmas) {
-                            ret += 1;
+                        for k in 1..=3 {
+                            potential_xmases.push(text_as_chars[i + k][j + k]);
                         }
                     }
+                    ret += number_of_xmases(potential_xmases);
+
+                    // compute diagonal right to left
+                    potential_xmases = "X".to_string();
+                    if can_check_up && can_check_right {
+                        for k in 1..=3 {
+                            potential_xmases.insert(0, text_as_chars[i - k][j + k]);
+                        }
+                    }
+                    if can_check_down && can_check_left {
+                        for k in 1..=3 {
+                            potential_xmases.push(text_as_chars[i + k][j - k]);
+                        }
+                    }
+                    ret += number_of_xmases(potential_xmases);
                 }
             }
         }
+
         Ok(ret)
     }
 
@@ -196,6 +172,13 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn is_xmas(word: String) -> bool {
-    word == "XMAS" || word == "SAMX"
+fn number_of_xmases(word: String) -> usize {
+    let mut ret = 0;
+    if word.contains("XMAS") {
+        ret += 1;
+    }
+    if word.contains("SAMX") {
+        ret += 1;
+    }
+    ret
 }
