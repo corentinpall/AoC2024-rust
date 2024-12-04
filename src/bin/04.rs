@@ -22,6 +22,19 @@ MAMMMXMMMM
 MXMXAXMASX
 ";
 
+const TEST_2: &str = "\
+.M.S......
+..A..MSMS.
+.M.S.MAA..
+..A.ASMSM.
+.M.S.M....
+..........
+S.S.S.S.S.
+.A.A.A.A..
+M.M.M.M.M.
+..........
+";
+
 fn main() -> Result<()> {
     start_day(DAY);
 
@@ -148,16 +161,32 @@ fn main() -> Result<()> {
             .map(|line| line.map(|line| line.replace('\u{FEFF}', "").chars().collect()))
             .collect::<Result<_, _>>()?;
 
-        // for some reason part 2 is easier and cleaner
-        for i in 0..text_as_chars.len() {
-            for j in 0..text_as_chars[i].len() {
-                if text_as_chars[i][j] == 'A' {}
+        // for some reason part 2 is easier
+        // start indexes from 1, making bound checking useless
+        for i in 1..text_as_chars.len() - 1 {
+            for j in 1..text_as_chars[i].len() - 1 {
+                if text_as_chars[i][j] == 'A' {
+                    let (top_left, top_right, bottom_left, bottom_right) = (
+                        text_as_chars[i - 1][j - 1],
+                        text_as_chars[i - 1][j + 1],
+                        text_as_chars[i + 1][j - 1],
+                        text_as_chars[i + 1][j + 1],
+                    );
+                    // disgusting but fast
+                    if ((top_left, bottom_right) == ('M', 'S')
+                        || (top_left, bottom_right) == ('S', 'M'))
+                        && ((top_right, bottom_left) == ('M', 'S')
+                            || (top_right, bottom_left) == ('S', 'M'))
+                    {
+                        ret += 1;
+                    }
+                }
             }
         }
         Ok(ret)
     }
 
-    assert_eq!(0, part2(BufReader::new(TEST.as_bytes()))?);
+    assert_eq!(9, part2(BufReader::new(TEST_2.as_bytes()))?);
 
     let input_file = BufReader::new(File::open(INPUT_FILE)?);
     let result = time_snippet!(part2(input_file)?);
