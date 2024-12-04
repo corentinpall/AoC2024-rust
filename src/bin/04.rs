@@ -42,10 +42,7 @@ fn main() -> Result<()> {
 
     fn part1<R: BufRead>(reader: R) -> Result<usize> {
         let mut ret = 0;
-        let text_as_chars: Vec<Vec<char>> = reader
-            .lines()
-            .map(|line| line.map(|line| line.replace('\u{FEFF}', "").chars().collect()))
-            .collect::<Result<_, _>>()?;
+        let text_as_chars = process_lines(reader)?;
 
         // let's start the horrible nesting
         for i in 0..text_as_chars.len() {
@@ -132,10 +129,7 @@ fn main() -> Result<()> {
 
     fn part2<R: BufRead>(reader: R) -> Result<usize> {
         let mut ret = 0;
-        let text_as_chars: Vec<Vec<char>> = reader
-            .lines()
-            .map(|line| line.map(|line| line.replace('\u{FEFF}', "").chars().collect()))
-            .collect::<Result<_, _>>()?;
+        let text_as_chars = process_lines(reader)?;
 
         // for some reason part 2 is easier
         // start indexes from 1, making bound checking useless
@@ -148,6 +142,7 @@ fn main() -> Result<()> {
                         text_as_chars[i + 1][j - 1],
                         text_as_chars[i + 1][j + 1],
                     );
+
                     // disgusting but fast
                     if ((top_left, bottom_right) == ('M', 'S')
                         || (top_left, bottom_right) == ('S', 'M'))
@@ -170,6 +165,14 @@ fn main() -> Result<()> {
     //endregion
 
     Ok(())
+}
+
+fn process_lines<R: BufRead>(reader: R) -> Result<Vec<Vec<char>>> {
+    let text_as_chars: Vec<Vec<char>> = reader
+        .lines()
+        .map(|line| line.map(|line| line.replace('\u{FEFF}', "").chars().collect()))
+        .collect::<Result<_, _>>()?;
+    Ok(text_as_chars)
 }
 
 fn number_of_xmases(word: String) -> usize {
